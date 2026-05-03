@@ -1,0 +1,258 @@
+import { Module } from "../lib/plugins.js";
+import { getTheme } from "../Themes/themes.js";
+const theme = getTheme();
+Module({
+  command: "tagall",
+  package: "group",
+  description: "Tag all group members with custom style",
+})(async (m, text) => {
+  if (!m.isGroup) return m.send(theme.isGroup);
+  await m.loadGroupInfo();
+  try {
+    const conn = m.conn;
+    const from = m.from;
+    const groupMetadata = await conn.groupMetadata(from);
+    const participants = groupMetadata.participants;
+    const groupName = groupMetadata.subject || "Unknown Group";
+    let totalMembers = participants ? participants.length : 0;
+    if (totalMembers === 0)
+      return m.send("❌ No members found in this group.");
+    const msgText = text?.trim() || "ATTENTION EVERYONE";
+    const emojis = [
+      "⚡",
+      "✨",
+      "🎖️",
+      "💎",
+      "🔱",
+      "💗",
+      "❤‍🩹",
+      "👻",
+      "🌟",
+      "🪄",
+      "🎋",
+      "🪼",
+      "🍿",
+      "👀",
+      "👑",
+      "🦋",
+      "🐋",
+      "🌻",
+      "🌸",
+      "🔥",
+      "🍉",
+      "🍧",
+      "🍨",
+      "🍦",
+      "🧃",
+      "🪀",
+      "🎾",
+      "🪇",
+      "🎲",
+      "🎡",
+      "🧸",
+      "🎀",
+      "🎈",
+      "🩵",
+      "♥️",
+      "🚩",
+      "🏳️‍🌈",
+      "🏖️",
+      "🔪",
+      "🎏",
+      "🫐",
+      "🍓",
+      "💋",
+      "🍄",
+      "🎐",
+      "🍇",
+      "🐍",
+      "🪻",
+      "🪸",
+      "💀",
+    ];
+    const getEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
+    // Separate admins and non-admins
+    const admins = participants.filter(
+      (p) => p.admin === "admin" || p.admin === "superadmin"
+    );
+    const others = participants.filter((p) => !admins.includes(p));
+    let tagText = `*▢ GROUP : ${groupName}*\n*▢ MEMBERS : ${totalMembers}*\n*▢ MESSAGE : ${msgText}*\n\n╭┈─「 ɦเ αℓℓ ƒɾเεɳ∂ร 🥰 」┈❍\n`;
+ 
+    for (const p of others) {
+      tagText += `│${getEmoji()} ᩧ𝆺ྀི𝅥 @${p.id.split("@")[0]}\n`;
+    }
+    tagText += `╰────────────❍`;
+    const mentions = participants.map((p) => p.id);
+    await conn.sendMessage(
+      from,
+      {
+        text: tagText,
+        mentions,
+      },
+      { quoted: m.raw }
+    );
+  } catch (err) {
+    console.error("tagall error:", err);
+    m.send("❌ An error occurred while tagging members.");
+  }
+});
+
+Module({
+  command: "admin",
+  package: "group",
+  description: "Tag all group admins",
+})(async (m, text) => {
+  await m.loadGroupInfo(m.from);
+  if (!m.isGroup) return m.send(theme.isGroup);
+
+  try {
+    const conn = m.conn;
+    const from = m.from;
+    const groupMetadata = await conn.groupMetadata(from);
+    const participants = groupMetadata.participants;
+    const groupName = groupMetadata.subject || "Unknown Group";
+
+    // Filter only admins and super admins
+    const admins = participants.filter(
+      (p) => p.admin === "admin" || p.admin === "superadmin"
+    );
+    const totalAdmins = admins.length;
+
+    if (totalAdmins === 0) {
+      return await m.send("❌ No admins found in this group.");
+    }
+
+    const msgText = text?.trim() || "ATTENTION ADMINS";
+
+    const emojis = [
+      "⚡",
+      "✨",
+      "🎖️",
+      "💎",
+      "🔱",
+      "💗",
+      "❤‍🩹",
+      "👻",
+      "🌟",
+      "🪄",
+      "🎋",
+      "🪼",
+      "🍿",
+      "👀",
+      "👑",
+      "🦋",
+      "🐋",
+      "🌻",
+      "🌸",
+      "🔥",
+      "🍉",
+      "🍧",
+      "🍨",
+      "🍦",
+      "🧃",
+      "�",
+      "🎾",
+      "🪇",
+      "🎲",
+      "🎡",
+      "🧸",
+      "🎀",
+      "🎈",
+      "🩵",
+      "♥️",
+      "🚩",
+      "🏳️‍🌈",
+      "🏖️",
+      "🔪",
+      "🎏",
+      "🫐",
+      "🍓",
+      "💋",
+      "🍄",
+      "🎐",
+      "🍇",
+      "🐍",
+      "🪻",
+      "🪸",
+      "💀",
+    ];
+
+    const getEmoji = () => emojis[Math.floor(Math.random() * emojis.length)];
+
+    let tagText = `*▢ GROUP : ${groupName}*\n*▢ ADMINS : ${totalAdmins}*\n*▢ MESSAGE : ${msgText}*\n\n╭┈─「 αℓℓ α∂ɱเɳร 👑 」┈❍\n`;
+
+    for (const admin of admins) {
+      const role = admin.admin === "superadmin" ? "🌟" : "👮";
+      tagText += `│${getEmoji()} @${admin.id.split("@")[0]}\n`;
+    }
+
+    tagText += "╰────────────❍";
+
+    const mentions = admins.map((a) => a.id);
+
+    await conn.sendMessage(
+      from,
+      {
+        text: tagText,
+        mentions,
+      },
+      { quoted: m.raw }
+    );
+  } catch (err) {
+    console.error("admin tag error:", err);
+    await m.send("❌ An error occurred while tagging admins.");
+  }
+});
+
+Module({
+  command: "rtag",
+  package: "group",
+  description: "Tag random members",
+})(async (m, text) => {
+  if (!m.isGroup) return m.send(theme.isGroup);
+
+  await m.loadGroupInfo();
+
+  try {
+    const count = parseInt(text) || 5;
+    const participants = m.groupParticipants;
+
+    // Shuffle and pick random members
+    const shuffled = participants.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, Math.min(count, participants.length));
+
+    let tagText = `🎲 *Random ${count} Members*\n\n`;
+    const mentions = [];
+
+    for (const p of selected) {
+      tagText += `✨ @${p.id.split("@")[0]}\n`;
+      mentions.push(p.id);
+    }
+
+    await m.send({ text: tagText, mentions });
+  } catch (err) {
+    await m.send("❌ Error: " + err.message);
+  }
+});
+
+Module({
+  command: "hidetag",
+  package: "group",
+  description: "Tag all without showing names",
+})(async (m, text) => {
+  if (!m.isGroup) return m.send(theme.isGroup);
+
+  await m.loadGroupInfo();
+
+  if (!m.isAdmin && !m.isFromMe) return m.send(theme.isAdmin);
+
+  try {
+    const message = text || "📢 Everyone has been tagged!";
+    const mentions = m.groupParticipants.map((p) => p.id);
+
+    await m.send({ text: message, mentions });
+    await m.react("👻");
+  } catch (err) {
+    await m.send("❌ Error: " + err.message);
+  }
+});
